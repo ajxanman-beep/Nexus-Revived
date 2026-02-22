@@ -13,7 +13,16 @@ if (!fs.existsSync(gamesDir)) {
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+
+// Configure Socket.IO for production (Render) with CORS support
+const io = new Server(server, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"],
+        credentials: false
+    },
+    transports: ["websocket", "polling"]
+});
 
 app.use(express.static(path.join(__dirname, 'public')));
 // serve uploaded games
@@ -866,6 +875,7 @@ function createSystemMessage(text) {
 }
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+const HOST = process.env.HOST || '0.0.0.0';
+server.listen(PORT, HOST, () => {
+    console.log(`Server running on ${HOST}:${PORT}`);
 });
