@@ -136,13 +136,6 @@ window.panicButtonAction = function() {
     }
 }
 
-// add beforeunload confirmation every time
-window.addEventListener('beforeunload', function (e) {
-    // standard message is ignored by modern browsers, but returning non-null triggers prompt
-    e.preventDefault();
-    e.returnValue = 'Would you like to leave the site?';
-});
-
 // helper to setup game upload button (if present on page)
 function setupGameUpload() {
     const btn = document.getElementById('upload-game-btn');
