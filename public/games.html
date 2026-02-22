@@ -194,11 +194,11 @@
                     </div>
                 </div>
                 <div id="floating-chat-messages" class="floating-chat-messages"></div>
-                    <div id="floating-chat-messages" class="floating-chat-messages"></div>
-                    <iframe id="floating-chat-iframe" style="display:none; width:100%; height:100%; border:0; border-radius:6px; background:#0a0a0a;" sandbox="allow-same-origin allow-scripts allow-forms"></iframe>
-                    <div class="floating-chat-input" id="floating-chat-input-wrap">
-                        <input type="text" id="floating-chat-input" placeholder="Type message..." onkeypress="handleFloatingChatInput(event)">
-                    </div>
+                <iframe id="floating-chat-iframe" style="display:none; width:100%; height:100%; border:0; border-radius:6px; background:#0a0a0a;" sandbox="allow-same-origin allow-scripts allow-forms"></iframe>
+                <div class="floating-chat-input" id="floating-chat-input-wrap">
+                    <input type="text" id="floating-chat-input" placeholder="Type message..." onkeypress="handleFloatingChatInput(event)">
+                </div>
+            </div>
         </div>
     </div>
 
@@ -349,32 +349,68 @@
         function createGameCard(game, isPinned) {
             const card = document.createElement('div');
             card.className = 'game-card';
+            card.dataset.gameName = game.name;
+            card.dataset.gameIndexFile = game.indexFile;
             
-            const iconHtml = game.icon ? `<img src="${game.icon}" class="game-card-icon" alt="${game.name}" onerror="this.style.display='none'">` : '';
+            const iconHtml = game.icon ? `<img src="${game.icon}" class="game-card-icon" alt="${escapeHtml(game.name)}" onerror="this.style.display='none'">` : '';
             
             card.innerHTML = `
                 <div class="game-card-header">
                     <h3 class="game-card-title">
                         ${iconHtml}
-                        <span>${game.name}</span>
+                        <span>${escapeHtml(game.name)}</span>
                     </h3>
                     <div class="game-card-actions">
                         ${currentUser && currentUser.isAdmin ? `
-                            <button class="game-card-btn ${isPinned ? 'pinned' : ''}" onclick="event.stopPropagation(); togglePin('${game.name}')" title="${isPinned ? 'Unpin' : 'Pin'}">
+                            <button class="game-card-btn game-pin-btn ${isPinned ? 'pinned' : ''}" title="${isPinned ? 'Unpin' : 'Pin'}">
                                 <i class="fas fa-thumbtack"></i>
                             </button>
-                            <button class="game-card-btn" onclick="event.stopPropagation(); deleteGame('${game.name}')" title="Delete" style="color: #ff4757;">
+                            <button class="game-card-btn game-delete-btn" title="Delete" style="color: #ff4757;">
                                 <i class="fas fa-trash"></i>
                             </button>
                         ` : ''}
                     </div>
                 </div>
-                <div class="game-card-footer" onclick="openFullscreenGame('${game.name}', '${game.indexFile}')">
+                <div class="game-card-footer game-play-btn">
                     <i class="fas fa-play-circle"></i> Play Game
                 </div>
             `;
             
+            // Add event listeners instead of inline onclick
+            const pinBtn = card.querySelector('.game-pin-btn');
+            if (pinBtn) {
+                pinBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    togglePin(game.name);
+                });
+            }
+            
+            const deleteBtn = card.querySelector('.game-delete-btn');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteGame(game.name);
+                });
+            }
+            
+            const playBtn = card.querySelector('.game-play-btn');
+            if (playBtn) {
+                playBtn.addEventListener('click', () => {
+                    openFullscreenGame(game.name, game.indexFile);
+                });
+            }
+            
             return card;
+        }
+        
+        // Helper function to escape HTML
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
         }
         
         function togglePin(name) {
@@ -464,15 +500,17 @@
         }
         
         function toggleMinimizeChat() {
-            const chat = document.getElementById('floating-chat');
-            chat.classList.toggle('minimized');
+            if (!floatingChat) return;
+            floatingChat.classList.toggle('minimized');
             const btn = document.getElementById('minimize-chat-btn');
-            if (chat.classList.contains('minimized')) {
-                btn.innerHTML = '<i class="fas fa-plus"></i>';
-                btn.title = 'Maximize';
-            } else {
-                btn.innerHTML = '<i class="fas fa-minus"></i>';
-                btn.title = 'Minimize';
+            if (btn) {
+                if (floatingChat.classList.contains('minimized')) {
+                    btn.innerHTML = '<i class="fas fa-plus"></i>';
+                    btn.title = 'Maximize';
+                } else {
+                    btn.innerHTML = '<i class="fas fa-minus"></i>';
+                    btn.title = 'Minimize';
+                }
             }
         }
         
@@ -489,7 +527,8 @@
             if (type === 'system') {
                 msg.textContent = text;
             } else {
-                msg.innerHTML = `<strong>${username || currentUser.username}:</strong> ${text}`;
+                const displayName = username || (currentUser && currentUser.username) || 'Anonymous';
+                msg.innerHTML = `<strong>${escapeHtml(displayName)}:</strong> ${escapeHtml(text)}`;
             }
             
             messagesContainer.appendChild(msg);
@@ -510,12 +549,14 @@
         }
         
         function closeFloatingChat() {
-            document.getElementById('floating-chat').style.display = 'none';
+            if (floatingChat) {
+                floatingChat.style.display = 'none';
+            }
         }
         
         // Enhanced draggable and resizable floating chat
         const floatingChat = document.getElementById('floating-chat');
-        const header = document.querySelector('.floating-chat-header');
+        const header = floatingChat ? floatingChat.querySelector('.floating-chat-header') : null;
         
         let isDragging = false;
         let dragOffsetX = 0;
@@ -527,32 +568,37 @@
         let resizeStartHeight = 0;
         
         // Dragging
-        header.addEventListener('mousedown', (e) => {
-            if (e.target.closest('.floating-chat-controls')) return;
-            isDragging = true;
-            dragOffsetX = e.clientX - floatingChat.offsetLeft;
-            dragOffsetY = e.clientY - floatingChat.offsetTop;
-            floatingChat.style.cursor = 'grabbing';
-        });
+        if (header) {
+            header.addEventListener('mousedown', (e) => {
+                if (e.target.closest('.floating-chat-controls')) return;
+                isDragging = true;
+                dragOffsetX = e.clientX - floatingChat.offsetLeft;
+                dragOffsetY = e.clientY - floatingChat.offsetTop;
+                floatingChat.style.cursor = 'grabbing';
+            });
+        }
         
         // Resizing (right-bottom corner)
-        floatingChat.addEventListener('mousedown', (e) => {
-            if (header.contains(e.target)) return;
-            const rect = floatingChat.getBoundingClientRect();
-            const isNearEdge = 
-                (e.clientX >= rect.right - 15 && e.clientY >= rect.bottom - 15);
-            if (isNearEdge && !floatingChat.classList.contains('minimized')) {
-                isResizing = true;
-                resizeStartX = e.clientX;
-                resizeStartY = e.clientY;
-                resizeStartWidth = rect.width;
-                resizeStartHeight = rect.height;
-                floatingChat.style.cursor = 'nwse-resize';
-                e.preventDefault();
-            }
-        });
+        if (floatingChat) {
+            floatingChat.addEventListener('mousedown', (e) => {
+                if (header && header.contains(e.target)) return;
+                const rect = floatingChat.getBoundingClientRect();
+                const isNearEdge = 
+                    (e.clientX >= rect.right - 15 && e.clientY >= rect.bottom - 15);
+                if (isNearEdge && !floatingChat.classList.contains('minimized')) {
+                    isResizing = true;
+                    resizeStartX = e.clientX;
+                    resizeStartY = e.clientY;
+                    resizeStartWidth = rect.width;
+                    resizeStartHeight = rect.height;
+                    floatingChat.style.cursor = 'nwse-resize';
+                    e.preventDefault();
+                }
+            });
+        }
         
         document.addEventListener('mousemove', (e) => {
+            if (!floatingChat) return;
             if (isDragging) {
                 floatingChat.style.left = (e.clientX - dragOffsetX) + 'px';
                 floatingChat.style.top = (e.clientY - dragOffsetY) + 'px';
@@ -569,7 +615,7 @@
             }
             
             // Show resize cursor at edges
-            if (floatingChat.classList.contains('active') || document.getElementById('fullscreen-modal').classList.contains('active')) {
+            if (floatingChat && (floatingChat.classList.contains('active') || document.getElementById('fullscreen-modal')?.classList.contains('active'))) {
                 const rect = floatingChat.getBoundingClientRect();
                 const isNearEdge = 
                     (e.clientX >= rect.right - 15 && e.clientY >= rect.bottom - 15);
@@ -589,8 +635,9 @@
         
         // Listen for incoming messages
         socket.on('message', (msgObj) => {
-            if (document.getElementById('fullscreen-modal').classList.contains('active')) {
-                if (msgObj.user) {
+            const modal = document.getElementById('fullscreen-modal');
+            if (modal && modal.classList.contains('active')) {
+                if (msgObj && msgObj.user && msgObj.text) {
                     addChatMessage(msgObj.text, 'message', msgObj.user);
                 }
             }
