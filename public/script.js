@@ -129,9 +129,42 @@ function applyCloaking() {
 }
 
 window.panicButtonAction = function() {
-    if (userSettings.panicLink) {
-        window.location.href = userSettings.panicLink;
-    } else {
+    const panicUrl = userSettings.panicLink || 'https://google.com';
+    
+    // Try multiple methods to ensure the panic action works in all contexts
+    
+    // Method 1: Try top-level window (works if embedded in iframe)
+    try {
+        if (window.top && window.top !== window) {
+            window.top.location.href = panicUrl;
+            return;
+        }
+    } catch (e) {
+        // Cross-origin iframe or other restriction
+    }
+    
+    // Method 2: Try parent window
+    try {
+        if (window.parent && window.parent !== window) {
+            window.parent.location.href = panicUrl;
+            return;
+        }
+    } catch (e) {
+        // Cross-origin issue
+    }
+    
+    // Method 3: Try self (works for regular pages and same-origin embeds)
+    try {
+        window.location.href = panicUrl;
+        return;
+    } catch (e) {
+        // Fallback
+    }
+    
+    // Method 4: Open in new tab if navigation fails
+    try {
+        window.open(panicUrl, '_blank');
+    } catch (e) {
         alert('Panic link not set. Please set it in settings.');
     }
 }
@@ -291,6 +324,26 @@ document.addEventListener('keydown', function handlePanicKey(e) {
         panicButtonAction();
     }
 }, true);
+
+// Also listen on window for panic shortcuts (works in embedded contexts)
+try {
+    if (window.top && window.top !== window) {
+        window.top.document.addEventListener('keydown', function handleTopPanicKey(e) {
+            const active = window.top.document.activeElement;
+            if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT' || active.isContentEditable)) {
+                return;
+            }
+            const shortcut = userSettings.panicShortcut || 'Ctrl+Shift+P,Escape';
+            if (eventMatchesShortcut(e, shortcut)) {
+                try { e.preventDefault(); e.stopPropagation(); } catch(_) {}
+                console.log('Panic key activated from parent');
+                panicButtonAction();
+            }
+        }, true);
+    }
+} catch (e) {
+    // Cross-origin, skip parent listener
+}
 
 // helper to compare keyboard events against a shortcut string
 function eventMatchesShortcut(e, shortcutStr) {

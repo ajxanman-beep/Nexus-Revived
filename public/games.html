@@ -13,10 +13,10 @@
         .game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; margin-top: 20px; }
         .game-card { background: rgba(0,230,118,0.05); border: 1px solid rgba(0,230,118,0.2); border-radius: 12px; overflow: hidden; transition: all 0.3s; cursor: pointer; display: flex; flex-direction: column; }
         .game-card:hover { border-color: var(--primary); box-shadow: 0 0 20px rgba(0,230,118,0.2); transform: translateY(-2px); }
-        .game-card-header { padding: 15px; background: rgba(0,230,118,0.1); border-bottom: 1px solid rgba(0,230,118,0.2); display: flex; justify-content: space-between; align-items: center; }
-        .game-card-title { color: var(--primary); font-weight: 600; margin: 0; flex: 1; word-break: break-word; display: flex; align-items: center; gap: 10px; }
-        .game-card-icon { width: 32px; height: 32px; object-fit: contain; flex-shrink: 0; }
-        .game-card-actions { display: flex; gap: 8px; flex-shrink: 0; }
+        .game-card-header { padding: 15px; background: rgba(0,230,118,0.1); border-bottom: 1px solid rgba(0,230,118,0.2); display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px; text-align: center; }
+        .game-card-title { color: var(--primary); font-weight: 600; margin: 0; width: 100%; word-break: break-word; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .game-card-icon { width: 80px; height: 80px; object-fit: contain; flex-shrink: 0; margin: 10px auto; }
+        .game-card-actions { display: flex; gap: 8px; flex-shrink: 0; width: 100%; justify-content: center; }
         .game-card-btn { background: none; border: none; color: var(--primary); cursor: pointer; font-size: 1rem; transition: all 0.2s; }
         .game-card-btn:hover { transform: scale(1.2); }
         .game-card-btn.pinned { color: #FFD700; }
@@ -92,6 +92,9 @@
             <div style="display: flex; gap: 10px; align-items: center;">
                 <button id="admin-panel-btn" onclick="toggleAdminPanel()" class="btn-outline" style="display: none; min-width: 100px; font-size: 0.8rem; padding: 8px 12px;">
                     <i class="fas fa-shield-alt"></i> Admin
+                </button>
+                <button onclick="toggleInbox()" class="btn-outline" style="min-width: 100px; font-size: 0.8rem; padding: 8px 12px;">
+                    <i class="fas fa-inbox"></i> Inbox
                 </button>
                 <button onclick="toggleSettings()" class="btn-outline" style="min-width: 100px; font-size: 0.8rem; padding: 8px 12px;">
                     <i class="fas fa-cog"></i> Settings
@@ -294,10 +297,37 @@
     <div id="user-messages-modal" class="hidden glass-panel centered-panel" style="max-width: 600px; max-height: 85vh; overflow-y: auto;">
     </div>
 
+    <!-- Inbox / Private Messages Modal -->
+    <div id="inbox-modal" class="hidden glass-panel centered-panel" style="max-width: 800px; max-height: 85vh; overflow-y: auto;">
+        <h2 style="color: var(--primary); margin-top: 0;">Inbox</h2>
+        <p style="color: #aaa; font-size: 0.9rem; margin-bottom: 20px;">Send and receive private messages.</p>
+        
+        <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+            <div style="flex: 1;">
+                <label style="display: block; color: #ccc; margin-bottom: 8px; font-weight: 500;">Username to Message:</label>
+                <input type="text" id="inbox-recipient" placeholder="Enter username..." style="width: 100%; box-sizing: border-box; padding: 10px; background: rgba(0,230,118,0.05); border: 1px solid rgba(0,230,118,0.2); border-radius: 6px; color: #fff; font-size: 0.95rem;">
+            </div>
+            <div style="flex: 1;">
+                <label style="display: block; color: #ccc; margin-bottom: 8px; font-weight: 500;">Message:</label>
+                <input type="text" id="inbox-message" placeholder="Type message..." style="width: 100%; box-sizing: border-box; padding: 10px; background: rgba(0,230,118,0.05); border: 1px solid rgba(0,230,118,0.2); border-radius: 6px; color: #fff; font-size: 0.95rem;">
+            </div>
+            <button onclick="sendPrivateMessage()" class="btn-glow" style="align-self: flex-end; padding: 10px 20px;">Send</button>
+        </div>
+
+        <h3 style="color: #aaa; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 15px 0;">Private Messages</h3>
+        <div id="inbox-messages" style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; max-height: 400px; overflow-y: auto; min-height: 200px;">
+            <div style="color: #666; text-align: center; padding: 20px;">No messages yet</div>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button onclick="toggleInbox()" class="btn-outline" style="flex: 1; border: 1px solid #555;">Close</button>
+        </div>
+    </div>
+
     <!-- Embedded chat: shows the full chat UI inside Games page -->
     <div id="embedded-chat-container" style="max-width: 1100px; margin: 20px auto;">
         <h3 style="color: var(--primary); margin: 0 0 8px 0;">Chat (embedded)</h3>
-        <iframe id="embedded-chat-iframe" src="chat.html" style="width:100%; height:420px; border:1px solid rgba(255,255,255,0.06); border-radius:8px; background: #000;"></iframe>
+        <iframe id="embedded-chat-iframe" src="chat.html" style="width:100%; height:700px; border:1px solid rgba(255,255,255,0.06); border-radius:8px; background: #000;"></iframe>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
@@ -672,6 +702,133 @@
         
         // Initial load
         fetchGames();
+
+        // Inbox / Private Messaging functionality
+        let inboxMessages = JSON.parse(localStorage.getItem('inboxMessages') || '[]');
+
+        window.toggleInbox = function() {
+            const modal = document.getElementById('inbox-modal');
+            if (modal) {
+                modal.classList.toggle('hidden');
+                if (!modal.classList.contains('hidden')) {
+                    refreshInboxMessages();
+                }
+            }
+        }
+
+        function refreshInboxMessages() {
+            const container = document.getElementById('inbox-messages');
+            if (!container) return;
+
+            inboxMessages = JSON.parse(localStorage.getItem('inboxMessages') || '[]');
+            
+            if (inboxMessages.length === 0) {
+                container.innerHTML = '<div style="color: #666; text-align: center; padding: 20px;">No messages yet</div>';
+                return;
+            }
+
+            let html = '';
+            inboxMessages.forEach((msg, idx) => {
+                const time = new Date(msg.timestamp).toLocaleString();
+                html += `
+                    <div style="background: rgba(0,230,118,0.08); border-left: 3px solid rgba(0,230,118,0.5); padding: 12px; margin-bottom: 10px; border-radius: 4px;">
+                        <div style="color: var(--primary); font-weight: 600; margin-bottom: 5px;">
+                            <i class="fas ${msg.unread ? 'fa-envelope' : 'fa-envelope-open'}"></i> 
+                            ${msg.from} ${msg.unread ? '<span style="color: #ffd700;">(New)</span>' : ''}
+                        </div>
+                        <div style="color: #ccc; margin-bottom: 8px;">${escapeHtml(msg.text)}</div>
+                        <div style="color: #999; font-size: 0.8rem; margin-bottom: 8px;">${time}</div>
+                        <div style="display: flex; gap: 8px;">
+                            <button onclick="replyToInbox('${msg.from}')" class="btn-outline" style="padding: 6px 12px; font-size: 0.8rem; border: 1px solid rgba(0,230,118,0.3);">Reply</button>
+                            <button onclick="deleteInboxMessage(${idx})" class="btn-outline" style="padding: 6px 12px; font-size: 0.8rem; border: 1px solid rgba(255,71,87,0.3); color: #ff4757;">Delete</button>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        window.sendPrivateMessage = function() {
+            const recipient = document.getElementById('inbox-recipient')?.value.trim();
+            const messageText = document.getElementById('inbox-message')?.value.trim();
+
+            if (!recipient) {
+                showNotification('Please enter a username', 'error');
+                return;
+            }
+
+            if (!messageText) {
+                showNotification('Please enter a message', 'error');
+                return;
+            }
+
+            if (!currentUser) {
+                showNotification('You must be logged in', 'error');
+                return;
+            }
+
+            // Send via socket
+            socket.emit('privateMessage', {
+                to: recipient,
+                text: messageText,
+                from: currentUser.username
+            });
+
+            showNotification(`Message sent to ${recipient}`, 'success');
+            document.getElementById('inbox-message').value = '';
+            document.getElementById('inbox-recipient').value = '';
+        }
+
+        window.replyToInbox = function(username) {
+            const recipientInput = document.getElementById('inbox-recipient');
+            const messageInput = document.getElementById('inbox-message');
+            if (recipientInput) recipientInput.value = username;
+            if (messageInput) messageInput.focus();
+        }
+
+        window.deleteInboxMessage = function(index) {
+            if (confirm('Delete this message?')) {
+                inboxMessages.splice(index, 1);
+                localStorage.setItem('inboxMessages', JSON.stringify(inboxMessages));
+                refreshInboxMessages();
+                showNotification('Message deleted', 'success');
+            }
+        }
+
+        // Listen for incoming private messages
+        socket.on('privateMessage', (data) => {
+            if (!data || !data.from || !data.text) return;
+
+            const msg = {
+                from: data.from,
+                text: data.text,
+                timestamp: new Date().toISOString(),
+                unread: true
+            };
+
+            inboxMessages.push(msg);
+            localStorage.setItem('inboxMessages', JSON.stringify(inboxMessages));
+            
+            showNotification(`New message from ${data.from}`, 'success');
+            
+            // Refresh inbox if it's open
+            const inboxModal = document.getElementById('inbox-modal');
+            if (inboxModal && !inboxModal.classList.contains('hidden')) {
+                refreshInboxMessages();
+            }
+        });
+
+        // Helper to escape HTML (reuse from earlier)
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
     </script>
 </body>
 </html>

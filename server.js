@@ -415,6 +415,36 @@ io.on('connection', (socket) => {
         }
     });
 
+    // Private messaging between users
+    socket.on('privateMessage', (data) => {
+        const senderUsername = connectedSockets[socket.id];
+        if (!senderUsername || !data || !data.to || !data.text) return;
+
+        // Find recipient's socket
+        let recipientSocketFound = false;
+        for (const [sockId, username] of Object.entries(connectedSockets)) {
+            if (username === data.to) {
+                const recipientSocket = io.sockets.sockets.get(sockId);
+                if (recipientSocket) {
+                    // Send to recipient
+                    recipientSocket.emit('privateMessage', {
+                        from: senderUsername,
+                        text: data.text,
+                        timestamp: new Date().toISOString()
+                    });
+                    recipientSocketFound = true;
+                    break;
+                }
+            }
+        }
+
+        if (recipientSocketFound) {
+            socket.emit('notification', { type: 'success', message: `Private message sent to ${data.to}` });
+        } else {
+            socket.emit('notification', { type: 'error', message: `User "${data.to}" is not online or does not exist` });
+        }
+    });
+
     // Admin can delete any message
     socket.on('adminDeleteMessage', ({ msgId }) => {
         const adminUsername = connectedSockets[socket.id];
