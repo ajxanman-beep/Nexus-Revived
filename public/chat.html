@@ -57,16 +57,31 @@
         #messages { overflow-y:auto; -webkit-overflow-scrolling:touch; padding-bottom:12px; }
         #chat-form { flex:0 0 auto; display:flex; gap:10px; }
         
-        /* Embedded in iframe styling */
-        @media (max-width: 600px) {
-            body#page-chat .app-container { padding: 8px; }
-            body#page-chat .dashboard-header { display: none; }
-            body#page-chat .chat-layout { gap: 0; }
-            body#page-chat .chat-sidebar { display: none; }
-            body#page-chat .chat-main { border-radius: 0; }
-            #messages { padding: 8px; }
-            #chat-form { margin-top: 8px; }
-            #msg-input { font-size: 14px; }
+        /* Embedded in iframe styling (FORCED OVERRIDES) */
+        @media (max-width: 650px) {
+            body#page-chat { background: transparent !important; }
+            body#page-chat .app-container { padding: 0 !important; }
+            
+            /* Hide the particle canvas in the mini player so it's less chaotic */
+            #particleCanvas { display: none !important; }
+            
+            /* Hide the header and sidebar completely */
+            body#page-chat .dashboard-header { display: none !important; }
+            body#page-chat .chat-sidebar { display: none !important; }
+            
+            /* Remove all gaps and borders so the chat fills the iframe */
+            body#page-chat .chat-layout { gap: 0 !important; margin: 0 !important; border: none !important; }
+            body#page-chat .chat-main { 
+                border-radius: 0 !important; 
+                background: transparent !important; 
+                border: none !important; 
+                box-shadow: none !important; 
+                padding: 10px !important;
+            }
+            
+            #messages { padding: 0 5px !important; }
+            #chat-form { margin-top: 5px !important; }
+            #msg-input { font-size: 14px !important; }
         }
     </style>
 </head>
