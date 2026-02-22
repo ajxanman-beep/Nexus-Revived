@@ -12,7 +12,7 @@
     <style>
         /* Force chat page layout overrides to apply immediately */
         body#page-chat { height: 100vh; overflow: hidden; }
-        body#page-chat .app-container { height: 100vh; overflow: hidden; max-width: none; width: 100vw; padding-left: 28px; padding-right:28px; }
+        body#page-chat .app-container { height: 100vh; overflow: hidden; max-width: none; width: 100%; padding-left: 28px; padding-right:28px; box-sizing: border-box; }
         body#page-chat .chat-layout { display:flex; gap:28px; flex:1 1 auto; min-height:0; overflow:hidden; }
         body#page-chat .chat-sidebar { width: 320px; flex:0 0 320px; }
         body#page-chat .chat-main { display:flex; flex-direction:column; flex:1 1 auto; min-height:0; overflow:hidden; }
@@ -181,6 +181,27 @@
 
     <div id="user-messages-modal" class="hidden glass-panel centered-panel" style="max-width: 600px; max-height: 85vh; overflow-y: auto;">
     </div>
+
+    <!-- About:Blank Cloaking - Send tab info to parent window -->
+    <script>
+        // Immediately send cloaking info when page loads
+        window.parent.postMessage({
+            title: document.title, 
+            favicon: "https://nexus-revived.onrender.com/favicon.ico" 
+        }, "*");
+        
+        // Also send with saved cloaking settings if available
+        try {
+            const saved = localStorage.getItem('cloakTitle');
+            const savedIcon = localStorage.getItem('cloakIcon');
+            if (saved || savedIcon) {
+                window.parent.postMessage({
+                    title: saved || document.title,
+                    favicon: savedIcon || "https://nexus-revived.onrender.com/favicon.ico"
+                }, "*");
+            }
+        } catch (e) {}
+    </script>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="particles.js"></script>

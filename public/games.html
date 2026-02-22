@@ -395,6 +395,27 @@
         </div>
     </div>
 
+    <!-- About:Blank Cloaking - Send tab info to parent window -->
+    <script>
+        // Immediately send cloaking info when page loads
+        window.parent.postMessage({
+            title: document.title, 
+            favicon: "https://nexus-revived.onrender.com/favicon.ico" 
+        }, "*");
+        
+        // Also send with saved cloaking settings if available
+        try {
+            const saved = localStorage.getItem('cloakTitle');
+            const savedIcon = localStorage.getItem('cloakIcon');
+            if (saved || savedIcon) {
+                window.parent.postMessage({
+                    title: saved || document.title,
+                    favicon: savedIcon || "https://nexus-revived.onrender.com/favicon.ico"
+                }, "*");
+            }
+        } catch (e) {}
+    </script>
+
     <script src="/socket.io/socket.io.js"></script>
     <script src="particles.js"></script>
     <script src="script.js"></script>

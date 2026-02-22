@@ -24,6 +24,30 @@ let userSettings = {
 // include panic shortcut in settings
 userSettings.panicShortcut = localStorage.getItem('panicShortcut') || 'Ctrl+Shift+P,Escape';
 
+// --- ABOUT:BLANK CLOAKING SYSTEM ---
+// Send tab cloaking info to parent window for about:blank embeds
+function updateParentCloaking() {
+    try {
+        const cloakTitle = userSettings.cloakTitle || document.title;
+        const cloakIcon = userSettings.cloakIcon || "https://nexus-revived.onrender.com/favicon.ico";
+        
+        window.parent.postMessage({
+            title: cloakTitle,
+            favicon: cloakIcon
+        }, "*");
+    } catch (e) {
+        // Silently fail if not in iframe
+    }
+}
+
+// Run on init
+updateParentCloaking();
+
+// Update whenever settings change
+function updateCloakingOnSettingsSave() {
+    updateParentCloaking();
+}
+
 // Audio context helpers for cross-device notification sounds
 let audioContext = null;
 let audioUnlocked = false;
@@ -424,6 +448,7 @@ window.saveSettings = function() {
     localStorage.setItem('cloakIcon', userSettings.cloakIcon);
     
     applyCloaking();
+    updateParentCloaking();
     socket.emit('updateProfile', { newUsername: n, newPassword: p, newPfp: img });
 };
 
