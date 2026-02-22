@@ -139,7 +139,7 @@
         .floating-chat-messages { 
             flex: 1; 
             overflow-y: auto; 
-            overflow-x: hidden; 
+            overflow-x: auto; 
             padding: 16px; 
             display: flex; 
             flex-direction: column; 
@@ -221,6 +221,22 @@
             background: rgba(0, 0, 0, 0.4) !important; 
             border: 1px solid rgba(0, 230, 118, 0.1) !important;
             border-radius: 10px !important;
+        }
+        
+        /* Responsive Floating Chat */
+        @media (max-width: 768px) {
+            .floating-chat {
+                width: 92vw !important;
+                height: 70vh !important;
+                bottom: 10px !important;
+                right: 10px !important;
+            }
+        }
+        
+        @media (max-height: 600px) {
+            .floating-chat {
+                height: 85vh !important;
+            }
         }
     </style>
 </head>
