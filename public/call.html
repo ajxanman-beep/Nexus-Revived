@@ -9,6 +9,44 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- About:Blank Cloaking - MutationObserver for real-time title/favicon sync -->
+    <script>
+        function sendMetaToParent() {
+            // Get the current title
+            const currentTitle = document.title;
+            
+            // Get the current favicon
+            let currentFavicon = '';
+            const iconElement = document.querySelector('link[rel~="icon"]');
+            if (iconElement) {
+                currentFavicon = iconElement.href;
+            }
+
+            // Send data to the parent window
+            if (window.parent !== window) {
+                window.parent.postMessage({
+                    title: currentTitle,
+                    favicon: currentFavicon
+                }, "*");
+            }
+        }
+
+        // Send the data as soon as the page loads
+        window.addEventListener('load', sendMetaToParent);
+        // Also send immediately in case load fires after this script
+        setTimeout(sendMetaToParent, 100);
+
+        // Watch the <head> for changes to the title or favicon dynamically
+        const observer = new MutationObserver(() => {
+            sendMetaToParent();
+        });
+
+        const headElement = document.querySelector('head');
+        if (headElement) {
+            observer.observe(headElement, { subtree: true, childList: true, characterData: true });
+        }
+    </script>
 </head>
 <body id="page-call">
     <canvas id="particleCanvas"></canvas>
@@ -169,32 +207,42 @@
         </div>
     </div>
 
-    <!-- About:Blank Cloaking - Send tab info to parent window -->
+    <!-- About:Blank Cloaking - MutationObserver for real-time title/favicon sync -->
     <script>
-        // Cloaking function to update parent window
-        function sendCloakingMessage() {
-            try {
-                const cloakTitle = localStorage.getItem('cloakTitle') || document.title;
-                const cloakIcon = localStorage.getItem('cloakIcon') || "https://nexus-revived.onrender.com/favicon.ico";
-                
-                const message = { type: 'CLOAK_UPDATE', title: cloakTitle, favicon: cloakIcon };
-                window.parent.postMessage(message, "*");
-                
-                // Also try top window
-                if (window.top !== window.parent) {
-                    window.top.postMessage(message, "*");
-                }
-            } catch (e) {}
+        function sendMetaToParent() {
+            // Get the current title
+            const currentTitle = document.title;
+            
+            // Get the current favicon
+            let currentFavicon = '';
+            const iconElement = document.querySelector('link[rel~="icon"]');
+            if (iconElement) {
+                currentFavicon = iconElement.href;
+            }
+
+            // Send data to the parent window
+            if (window.parent !== window) {
+                window.parent.postMessage({
+                    title: currentTitle,
+                    favicon: currentFavicon
+                }, "*");
+            }
         }
-        
-        // Send immediately
-        sendCloakingMessage();
-        
-        // Send periodically (every 500ms)
-        setInterval(sendCloakingMessage, 500);
-        
-        // Send on visibility change
-        document.addEventListener('visibilitychange', sendCloakingMessage);
+
+        // Send the data as soon as the page loads
+        window.addEventListener('load', sendMetaToParent);
+        // Also send immediately in case load fires after this script
+        setTimeout(sendMetaToParent, 100);
+
+        // Watch the <head> for changes to the title or favicon dynamically
+        const observer = new MutationObserver(() => {
+            sendMetaToParent();
+        });
+
+        const headElement = document.querySelector('head');
+        if (headElement) {
+            observer.observe(headElement, { subtree: true, childList: true, characterData: true });
+        }
     </script>
 
     <script src="/socket.io/socket.io.js"></script>
