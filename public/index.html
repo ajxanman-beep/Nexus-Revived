@@ -24,12 +24,14 @@
                 <span id="display-name" class="pill-name">User</span>
                 <i onclick="logout()" class="fas fa-power-off logout-icon" title="Log Out"></i>
             </div>
-            <button id="admin-panel-btn" onclick="toggleAdminPanel()" class="btn-outline" style="display: none; min-width: 100px; font-size: 0.8rem; padding: 8px 12px;">
-                <i class="fas fa-shield-alt"></i> Admin
-            </button>
-            <button onclick="toggleSettings()" class="btn-outline" style="min-width: 100px; font-size: 0.8rem; padding: 8px 12px;">
-                <i class="fas fa-cog"></i> Settings
-            </button>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <button id="admin-panel-btn" onclick="toggleAdminPanel()" class="btn-outline" style="display: none; min-width: 100px; font-size: 0.8rem; padding: 8px 12px;">
+                    <i class="fas fa-shield-alt"></i> Admin
+                </button>
+                <button onclick="toggleSettings()" class="btn-outline" style="min-width: 100px; font-size: 0.8rem; padding: 8px 12px;">
+                    <i class="fas fa-cog"></i> Settings
+                </button>
+            </div>
         </header>
 
         <div id="notifications-container" style="position: fixed; top: 80px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; max-width: 400px;"></div>
