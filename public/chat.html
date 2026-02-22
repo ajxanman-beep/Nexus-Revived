@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     
-    <!-- About:Blank Cloaking - MutationObserver for real-time title/favicon sync -->
     <script>
         function sendMetaToParent() {
             // Get the current title
@@ -48,46 +47,28 @@
         }
     </script>
     <style>
-        /* Force chat page layout overrides to apply immediately */
-        body#page-chat { height: 100vh; overflow: hidden; margin: 0; }
-        body#page-chat .app-container { height: 100vh; overflow: hidden; max-width: none; width: 100%; padding-left: 28px; padding-right:28px; box-sizing: border-box; }
+        /* Force chat page to stay desktop-sized and allow scrolling */
+        body#page-chat { 
+            height: 100vh; 
+            overflow: auto; /* Allows scrollbars to appear */
+            margin: 0; 
+        }
+        
+        body#page-chat .app-container { 
+            height: 100vh; 
+            min-width: 900px; /* Refuses to squish, forcing the iframe to scroll */
+            max-width: none; 
+            width: 100%; 
+            padding-left: 28px; 
+            padding-right: 28px; 
+            box-sizing: border-box; 
+        }
+        
         body#page-chat .chat-layout { display:flex; gap:28px; flex:1 1 auto; min-height:0; overflow:hidden; }
         body#page-chat .chat-sidebar { width: 320px; flex:0 0 320px; }
         body#page-chat .chat-main { display:flex; flex-direction:column; flex:1 1 auto; min-height:0; overflow:hidden; }
         #messages { overflow-y:auto; -webkit-overflow-scrolling:touch; padding-bottom:12px; }
         #chat-form { flex:0 0 auto; display:flex; gap:10px; }
-        
-        /* Embedded in iframe styling (FORCED OVERRIDES) */
-        @media (max-width: 650px) {
-            body#page-chat { background: transparent !important; }
-            body#page-chat .app-container { padding: 0 !important; width: 100% !important; box-sizing: border-box !important; }
-            
-            /* Hide the particle canvas in the mini player so it's less chaotic */
-            #particleCanvas { display: none !important; }
-            
-            /* Hide the header and sidebar completely */
-            body#page-chat .dashboard-header { display: none !important; }
-            body#page-chat .chat-sidebar { display: none !important; }
-            
-            /* Remove gaps and force box-sizing so elements don't spill off-screen */
-            body#page-chat .chat-layout { gap: 0 !important; margin: 0 !important; border: none !important; width: 100% !important; box-sizing: border-box !important; }
-            
-            body#page-chat .chat-main { 
-                border-radius: 0 !important; 
-                background: transparent !important; 
-                border: none !important; 
-                box-shadow: none !important; 
-                padding: 10px !important;
-                width: 100% !important;
-                max-width: 100% !important;
-                box-sizing: border-box !important; /* <--- This is the magic fix for the cutoff */
-                overflow-x: hidden !important;
-            }
-            
-            #messages { padding: 0 5px !important; width: 100% !important; box-sizing: border-box !important; overflow-x: hidden !important; }
-            #chat-form { margin-top: 5px !important; width: 100% !important; box-sizing: border-box !important; }
-            #msg-input { font-size: 14px !important; width: 100% !important; box-sizing: border-box !important; }
-        }
     </style>
 </head>
 <body id="page-chat">
@@ -252,7 +233,6 @@
     <div id="user-messages-modal" class="hidden glass-panel centered-panel" style="max-width: 600px; max-height: 85vh; overflow-y: auto;">
     </div>
 
-    <!-- About:Blank Cloaking - MutationObserver for real-time title/favicon sync -->
     <script>
         function sendMetaToParent() {
             // Get the current title
