@@ -357,8 +357,9 @@
                         </button>
                     </div>
                 </div>
-                <div id="floating-chat-messages" class="floating-chat-messages"></div>
-                <div class="floating-chat-input" id="floating-chat-input-wrap">
+                <iframe id="floating-chat-iframe" style="display:block; width:100%; height:100%; border:0; border-radius:6px; background:#0a0a0a;" sandbox="allow-same-origin allow-scripts allow-forms"></iframe>
+                <div id="floating-chat-messages" class="floating-chat-messages" style="display:none;"></div>
+                <div class="floating-chat-input" id="floating-chat-input-wrap" style="display:none;">
                     <input type="text" id="floating-chat-input" placeholder="Type message..." onkeypress="handleFloatingChatInput(event)">
                 </div>
             </div>
@@ -679,21 +680,19 @@
             // prevent body scrolling while in fullscreen
             document.body.style.overflow = 'hidden';
             
-            // Reset chat and show it with messages and input visible
+            // Reset chat and show it with embedded chat.html
             const floatingChat = document.getElementById('floating-chat');
             if (floatingChat) {
                 floatingChat.classList.remove('minimized');
                 floatingChat.style.display = 'flex';
             }
             
-            // Ensure messages and input are visible
-            const floatMsgs = document.getElementById('floating-chat-messages');
-            const floatInputWrap = document.getElementById('floating-chat-input-wrap');
-            if (floatMsgs) floatMsgs.style.display = 'flex';
-            if (floatInputWrap) floatInputWrap.style.display = 'flex';
-            
-            // Add system message to chat
-            addChatMessage(`Game "${folderName}" started`, 'system');
+            // Load chat.html in iframe
+            const floatIframe = document.getElementById('floating-chat-iframe');
+            if (floatIframe) {
+                floatIframe.src = 'chat.html';
+                floatIframe.style.display = 'block';
+            }
         }
         
         function closeFullscreenGame() {
@@ -762,23 +761,6 @@
             }
         }
         
-        // Socket listeners for floating chat
-        socket.on('chatMessage', (data) => {
-            addChatMessage(data.message, 'user', data.username);
-        });
-        
-        socket.on('systemMessage', (data) => {
-            addChatMessage(data.message, 'system');
-        });
-        
-        socket.on('disconnect', () => {
-            addChatMessage('You have been disconnected', 'system');
-        });
-        
-        socket.on('connect', () => {
-            addChatMessage('Connected to server', 'system');
-        });
-        
         function closeFloatingChat() {
             if (floatingChat) {
                 floatingChat.style.display = 'none';
@@ -787,13 +769,6 @@
         
         // Enhanced draggable and resizable floating chat
         const floatingChat = document.getElementById('floating-chat');
-        
-        // Ensure chat is visible on page load
-        if (floatingChat) {
-            floatingChat.style.display = 'flex';
-            addChatMessage('Game chat ready!', 'system');
-        }
-        
         const header = floatingChat ? floatingChat.querySelector('.floating-chat-header') : null;
         
         let isDragging = false;
