@@ -56,6 +56,18 @@
         body#page-chat .chat-main { display:flex; flex-direction:column; flex:1 1 auto; min-height:0; overflow:hidden; }
         #messages { overflow-y:auto; -webkit-overflow-scrolling:touch; padding-bottom:12px; }
         #chat-form { flex:0 0 auto; display:flex; gap:10px; }
+        
+        /* Embedded in iframe styling */
+        @media (max-width: 600px) {
+            body#page-chat .app-container { padding: 8px; }
+            body#page-chat .dashboard-header { display: none; }
+            body#page-chat .chat-layout { gap: 0; }
+            body#page-chat .chat-sidebar { display: none; }
+            body#page-chat .chat-main { border-radius: 0; }
+            #messages { padding: 8px; }
+            #chat-form { margin-top: 8px; }
+            #msg-input { font-size: 14px; }
+        }
     </style>
 </head>
 <body id="page-chat">
