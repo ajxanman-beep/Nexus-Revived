@@ -171,23 +171,30 @@
 
     <!-- About:Blank Cloaking - Send tab info to parent window -->
     <script>
-        // Immediately send cloaking info when page loads
-        window.parent.postMessage({
-            title: document.title, 
-            favicon: "https://nexus-revived.onrender.com/favicon.ico" 
-        }, "*");
+        // Cloaking function to update parent window
+        function sendCloakingMessage() {
+            try {
+                const cloakTitle = localStorage.getItem('cloakTitle') || document.title;
+                const cloakIcon = localStorage.getItem('cloakIcon') || "https://nexus-revived.onrender.com/favicon.ico";
+                
+                const message = { type: 'CLOAK_UPDATE', title: cloakTitle, favicon: cloakIcon };
+                window.parent.postMessage(message, "*");
+                
+                // Also try top window
+                if (window.top !== window.parent) {
+                    window.top.postMessage(message, "*");
+                }
+            } catch (e) {}
+        }
         
-        // Also send with saved cloaking settings if available
-        try {
-            const saved = localStorage.getItem('cloakTitle');
-            const savedIcon = localStorage.getItem('cloakIcon');
-            if (saved || savedIcon) {
-                window.parent.postMessage({
-                    title: saved || document.title,
-                    favicon: savedIcon || "https://nexus-revived.onrender.com/favicon.ico"
-                }, "*");
-            }
-        } catch (e) {}
+        // Send immediately
+        sendCloakingMessage();
+        
+        // Send periodically (every 500ms)
+        setInterval(sendCloakingMessage, 500);
+        
+        // Send on visibility change
+        document.addEventListener('visibilitychange', sendCloakingMessage);
     </script>
 
     <script src="/socket.io/socket.io.js"></script>

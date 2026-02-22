@@ -31,22 +31,44 @@ function updateParentCloaking() {
         const cloakTitle = userSettings.cloakTitle || document.title;
         const cloakIcon = userSettings.cloakIcon || "https://nexus-revived.onrender.com/favicon.ico";
         
+        // Send to parent window
         window.parent.postMessage({
+            type: 'CLOAK_UPDATE',
             title: cloakTitle,
             favicon: cloakIcon
         }, "*");
+        
+        // Also try top window in case nested
+        if (window.top !== window.parent) {
+            window.top.postMessage({
+                type: 'CLOAK_UPDATE',
+                title: cloakTitle,
+                favicon: cloakIcon
+            }, "*");
+        }
     } catch (e) {
         // Silently fail if not in iframe
     }
 }
 
-// Run on init
+// Run on init and repeat periodically
 updateParentCloaking();
+setInterval(updateParentCloaking, 1000); // Send every second to ensure parent has info
 
 // Update whenever settings change
 function updateCloakingOnSettingsSave() {
     updateParentCloaking();
 }
+
+// Also update when DOM content is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', updateParentCloaking);
+} else {
+    updateParentCloaking();
+}
+
+// Update on visibility change
+document.addEventListener('visibilitychange', updateParentCloaking);
 
 // Audio context helpers for cross-device notification sounds
 let audioContext = null;
@@ -449,6 +471,12 @@ window.saveSettings = function() {
     
     applyCloaking();
     updateParentCloaking();
+    
+    // Send multiple cloaking updates after settings save
+    for (let i = 0; i < 5; i++) {
+        setTimeout(updateParentCloaking, i * 100);
+    }
+    
     socket.emit('updateProfile', { newUsername: n, newPassword: p, newPfp: img });
 };
 
