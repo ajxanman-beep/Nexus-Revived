@@ -404,7 +404,7 @@ body#page-chat .chat-main {
     font-weight: 500;
 }
 
-.actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.actions-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
 .action-card { 
     padding: 30px; 
     border-radius: 16px; 

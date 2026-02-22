@@ -105,6 +105,9 @@
                 <button onclick="window.location.href='call.html'" class="btn-outline" style="min-width: 100px; font-size: 0.8rem; padding: 8px 12px;">
                     <i class="fas fa-video"></i> Calls
                 </button>
+                <button onclick="window.location.href='https://sites.google.com/view/poopying/home'" class="btn-outline" style="min-width: 100px; font-size: 0.8rem; padding: 8px 12px;">
+                    <i class="fas fa-globe"></i> Proxy
+                </button>
                 <button onclick="window.location.href='index.html'" class="btn-danger" style="min-width: 120px; font-size: 0.95rem;">
                     <i class="fas fa-home"></i> Home
                 </button>
@@ -322,12 +325,6 @@
         <div style="display: flex; gap: 10px; margin-top: 20px;">
             <button onclick="toggleInbox()" class="btn-outline" style="flex: 1; border: 1px solid #555;">Close</button>
         </div>
-    </div>
-
-    <!-- Embedded chat: shows the full chat UI inside Games page -->
-    <div id="embedded-chat-container" style="max-width: 1100px; margin: 20px auto;">
-        <h3 style="color: var(--primary); margin: 0 0 8px 0;">Chat (embedded)</h3>
-        <iframe id="embedded-chat-iframe" src="chat.html" style="width:100%; height:700px; border:1px solid rgba(255,255,255,0.06); border-radius:8px; background: #000;"></iframe>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
